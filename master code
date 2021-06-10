@@ -1,0 +1,238 @@
+import os
+import discord
+from discord.ext import commands
+from discord.ext.commands.core import has_guild_permissions
+my_secret = os.environ['discord key']
+import giphy_client
+from giphy_client.rest import ApiException
+import random
+import time
+import requests
+import json
+import datetime
+from discord.ext import commands
+from keep_alive import keep_alive
+from discord.ext.commands.core import has_guild_permissions
+
+
+
+intents= discord.Intents.default()
+intents.members=True
+client = commands.Bot(command_prefix='&',intents=intents)
+today = datetime.datetime.now()
+date_time = today.strftime("%m/%d/%Y, %H:%M:%S")
+
+@client.event
+async def on_ready():
+    await client.change_presence(status=discord.Status.idle, activity=discord.Game("&invite"))
+    print('we have logged in as{0.user}'.format(client))
+
+
+
+@client.event
+async def on_member_join(member):
+    
+    guild = client.get_guild(488038731270455298)
+    channel = client.get_channel(846614579088719912)
+
+    await channel.send(
+        f'welcome to this server hope you enjoy your stay btw im better than the other bots in this server use &help for commands {member.mention} !  :star_struck: '
+    )
+
+
+
+
+
+
+
+
+@client.command()
+async def poll(ctx,*,message):
+  
+	emb=discord.Embed(title="POLL",description=f"{message}",colour=discord.Colour.red())
+	msg=await ctx.channel.send(embed=emb)
+	await msg.add_reaction('👍')
+	await msg.add_reaction('👎')
+
+
+
+
+@client.command(description="Gets info about the user")
+async def userinfo(ctx):
+    user = ctx.author
+
+    embed=discord.Embed(title="USER INFO", description=f"Here is the info we retrieved about {user}", colour=user.colour)
+    embed.set_thumbnail(url=user.avatar_url)
+    embed.add_field(name="NAME", value=user.name, inline=True)
+    embed.add_field(name="NICKNAME", value=user.nick, inline=True)
+    embed.add_field(name="ID", value=user.id, inline=True)
+    embed.add_field(name="STATUS", value=user.status, inline=True)
+    embed.add_field(name="TOP ROLE", value=user.top_role.name, inline=True)
+    await ctx.send(embed=embed)
+
+
+@client.command()
+async def gif(ctx,*,q="funny meme"):
+	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
+	api_instance = giphy_client.DefaultApi()
+	try:
+		api_response = api_instance.gifs_search_get(api_key,q,limit=5, rating='g')
+		lst = list(api_response.data)
+		giff = random.choice(lst)
+		emb = discord.Embed(title=q)
+		emb.set_image(url = f'https://media.giphy.com/media/{giff.id}/giphy.gif')
+		await ctx.channel.send(ctx.author)
+		await ctx.channel.send(embed=emb)
+	except ApiException as e:
+			
+			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)
+
+@client.command()
+async def doggif(ctx,*,q="cute dogs"):
+	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
+	api_instance = giphy_client.DefaultApi()
+	try:
+		api_response = api_instance.gifs_search_get(api_key,q,limit=5, rating='g')
+		lst = list(api_response.data)
+		giff = random.choice(lst)
+		emb = discord.Embed(title=q)
+		emb.set_image(url = f'https://media.giphy.com/media/{giff.id}/giphy.gif')
+		
+		await ctx.channel.send(embed=emb)
+	except ApiException as e:
+			
+			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)	
+
+@client.command()
+async def cheer(ctx,*,member: discord.Member,q="cheer"):
+	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
+	api_instance = giphy_client.DefaultApi()
+	try:
+		api_response = api_instance.gifs_search_get(api_key,q,limit=5, rating='g')
+		lst = list(api_response.data)
+		giff = random.choice(lst)
+		emb = discord.Embed(title=q)
+		emb.set_image(url = f'https://media.giphy.com/media/{giff.id}/giphy.gif')
+		await ctx.channel.send( member.mention)
+		await ctx.channel.send(embed=emb)
+	except ApiException as e:
+			
+			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)						
+		
+
+
+
+@client.command(description="Mutes the specified user.")
+@commands.has_permissions(manage_messages=True)
+async def mute(ctx, member: discord.Member, *, reason=None):
+    guild = ctx.guild
+    mutedRole = discord.utils.get(guild.roles, name="Muted")
+
+    if not mutedRole:
+        mutedRole = await guild.create_role(name="Muted")
+
+        for channel in guild.channels:
+            await channel.set_permissions(mutedRole, speak=False, send_messages=False, read_message_history=True, read_messages=False)
+
+    await member.add_roles(mutedRole, reason=reason)
+    await ctx.send(f"Muted {member.mention} for reason {reason}")
+    await member.send(f"You were muted in the server {guild.name} for {reason}")
+
+@client.command(description="Unmutes a specified user.")
+@commands.has_permissions(manage_messages=True)
+async def unmute(ctx, member: discord.Member):
+    mutedRole = discord.utils.get(ctx.guild.roles, name="Muted")
+
+    await member.remove_roles(mutedRole)
+    await ctx.send(f"Unmuted {member.mention}")
+    await member.send(f"You were unmuted in the server {ctx.guild.name}")
+
+
+@client.command(description = ' time')
+async def time(ctx):
+  await ctx.send(date_time)
+
+
+@client.command(description = ' date')
+async def date(ctx):
+  await ctx.send(date_time)
+
+
+@client.command(description = 'upcoming update')
+async def update(ctx):
+  await ctx.send('**FEW OPTIMIZATIONS AND SOME MINOR CHANGES**')
+
+
+@client.command(description = 'want to become a tester')
+async def tester(ctx):
+  await ctx.send('WANT TO TEST THIS BOT DM John Wick#9788 ON DISCORD HE WILL ADD YOU')	
+
+
+
+@client.command(description = 'greets you')
+async def heybot(ctx):
+  await ctx.send('**hey human nice to have you here**')
+
+
+
+@client.command(description = 'tells whats new')
+async def new(ctx):
+  await ctx.send('INTERFACE IS CHANGED COMPLETELY \n POLLS /n NEW HELP COMMAND  ')
+
+
+
+@client.command(description = 'who made me')
+async def creator(ctx):
+  await ctx.send(' Made by akash uday  \n Still improving it  \n made  using python,replit.com  \n')	
+
+
+
+@client.command(description = 'WANT TO INVITE ME TO YOUR SERVER??')
+async def invite(ctx):
+	await ctx.send('https://discord.com/api/oauth2/authorize?client_id=846282882716663820&permissions=4294441975&scope=bot  ')
+	await ctx.send( 'IF YOU WANT 100% ACCESS TO ALL THE COMMANDS THEN USE THE BELOW LINK ⏬⏬')
+	await ctx.send('https://discord.com/api/oauth2/authorize?client_id=846282882716663820&permissions=8&scope=bot')
+
+
+
+def get_yomamma():
+    response = requests.get("https://api.yomomma.info/")
+    json_data = json.loads(response.text)
+    picture = json_data
+    return (picture)
+
+
+@client.command(description = 'who made me')
+async def yomamma(ctx): 
+	yomamma = get_yomamma()
+	await ctx.send(ctx.author.mention + format(yomamma))
+
+
+@client.command(description = 'sends the bot display picture')
+async def dp(ctx):
+  await ctx.send(file=discord.File('GRENINJA BOT ori.jpg'))
+
+@client.command(description = 'a meme try it')
+async def meme(ctx):
+  await ctx.send(file=discord.File('e2a.jpg'))
+
+@client.command(description = 'website still under development')
+async def website(ctx):
+  await ctx.send('https://sites.google.com/view/greninjabot/home')	
+
+@client.command(description = 'how many servers i im')
+async def servers(ctx):
+  await ctx.send('I AM IN CURRENTLY \n **akash gaming ** \n **GÆM** \n ** Rotract BIT ** \n **Deadmans server** \n `NEED TO BE IN 75 SERVERS FOR VERIFICATION \n USE &invite TO SEE HOW TO GET ME IN YOUR SERVER` ')
+
+
+@client.command(description = 'how many servers i im')
+async def free(ctx):
+  await ctx.send('** WANT A CUSTOM BOT FOR FREE WITH YOUR SERVER NAME DM ME OR John Wick#9788 ON DISCORD** ')
+	
+
+
+
+
+
+keep_alive()
+client.run('YOUR TOKEN CODE')
