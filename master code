@@ -13,6 +13,7 @@ import datetime
 from discord.ext import commands
 from keep_alive import keep_alive
 from discord.ext.commands.core import has_guild_permissions
+import asyncio
 
 
 
@@ -31,17 +32,23 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member):
-    
-    guild = client.get_guild(488038731270455298)
-    channel = client.get_channel(846614579088719912)
+	if member.guild.id==488038731270455298:
 
-    await channel.send(
-        f'welcome to this server hope you enjoy your stay btw im better than the other bots in this server use &help for commands {member.mention} !  :star_struck: '
-    )
+		await client.get_channel(488381691870576642).send(f'welcome to this server hope you enjoy your stay btw im better than the other bots in this server use &help for commands {member.mention} !  :star_struck: ')
+		guildname=member.guild.name
+		await member.send(f"hey welcome to {guildname} hope you enjoy your stay if you want me in your server reply back to this message or use &invite  {guildname}")
+
+	elif member.guild.id==753868632848859138:
+			
+		await client.get_channel(753868633322815521).send(f'welcome to this server hope you enjoy your stay btw im better than the other bots in this server use &help for commands {member.mention} !  :star_struck: ')
+		await member.send(f"hey welcome to {guildname} hope you enjoy your stay if you want me in your server reply back to this message or use &invite  {guildname}")
 
 
 
-
+@client.command()
+async def yay(member):
+	members = await guild.fetch_members(limit=150).flatten()
+	print(members)
 
 
 
@@ -61,7 +68,7 @@ async def poll(ctx,*,message):
 async def userinfo(ctx):
     user = ctx.author
 
-    embed=discord.Embed(title="USER INFO", description=f"Here is the info we retrieved about {user}", colour=user.colour)
+    embed=discord.Embed(title="USER INFO",description=f"Here is the info we retrieved about {user}", colour=user.colour)
     embed.set_thumbnail(url=user.avatar_url)
     embed.add_field(name="NAME", value=user.name, inline=True)
     embed.add_field(name="NICKNAME", value=user.nick, inline=True)
@@ -71,7 +78,7 @@ async def userinfo(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command()
+@client.command(description="gives a funny meme")
 async def gif(ctx,*,q="funny meme"):
 	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
 	api_instance = giphy_client.DefaultApi()
@@ -87,8 +94,8 @@ async def gif(ctx,*,q="funny meme"):
 			
 			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)
 
-@client.command()
-async def doggif(ctx,*,q="cute dogs"):
+@client.command(description="GIVES A CUTE DOGGO PIC",aliases=['dog'])
+async def doggif(ctx,*,q="random golden retriever"):
 	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
 	api_instance = giphy_client.DefaultApi()
 	try:
@@ -103,7 +110,23 @@ async def doggif(ctx,*,q="cute dogs"):
 			
 			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)	
 
-@client.command()
+@client.command(description="GIVES A RANDOM PIC",aliases=['rand'])
+async def randomgif(ctx,*,q="random"):
+	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
+	api_instance = giphy_client.DefaultApi()
+	try:
+		api_response = api_instance.gifs_search_get(api_key,q,limit=10, rating='g')
+		lst = list(api_response.data)
+		giff = random.choice(lst)
+		emb = discord.Embed(title=q)
+		emb.set_image(url = f'https://media.giphy.com/media/{giff.id}/giphy.gif')
+		
+		await ctx.channel.send(embed=emb)
+	except ApiException as e:
+			
+			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)				
+
+@client.command(description="use it to cheer someone")
 async def cheer(ctx,*,member: discord.Member,q="cheer"):
 	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
 	api_instance = giphy_client.DefaultApi()
@@ -117,8 +140,46 @@ async def cheer(ctx,*,member: discord.Member,q="cheer"):
 		await ctx.channel.send(embed=emb)
 	except ApiException as e:
 			
-			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)						
+			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)		
+
+
+@client.command(description="funny animal pics")
+async def funnygif(ctx,*,q="funny animal pictures"):
+	api_key="i5LNUs1AAmqop5JWZOYeszAlhP9ODtRI"
+	api_instance = giphy_client.DefaultApi()
+	try:
+		api_response = api_instance.gifs_search_get(api_key,q,limit=5, rating='g')
+		lst = list(api_response.data)
+		giff = random.choice(lst)
+		emb = discord.Embed(title=q)
+		emb.set_image(url = f'https://media.giphy.com/media/{giff.id}/giphy.gif')
+	
+		await ctx.channel.send(embed=emb)
+	except ApiException as e:
+			
+			print("Exception when calling DefaultApi->gifs_search_get: %s\n" % e)		
+
+
 		
+@client.command(description='REMOVES SPECIFIC NUMBER OF MESSAGES USE &clear<no of messages>')
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx,amount=int()):
+	await ctx.channel.purge(limit=amount+1)
+	await ctx.send('Messages has been removed!',delete_after=5)
+
+
+@client.command(description='tags your friends')
+async def spam (ctx, member: discord.Member,amount=5):
+	
+	new=[member.mention]
+	member=' '.join(new)
+	for i in range(5):
+		await ctx.channel.send(member)
+	await asyncio.sleep(3)
+	await ctx.channel.purge(limit=amount+1)
+	
+		
+
 
 
 
@@ -146,6 +207,9 @@ async def unmute(ctx, member: discord.Member):
     await member.remove_roles(mutedRole)
     await ctx.send(f"Unmuted {member.mention}")
     await member.send(f"You were unmuted in the server {ctx.guild.name}")
+
+
+	
 
 
 @client.command(description = ' time')
@@ -177,7 +241,7 @@ async def heybot(ctx):
 
 @client.command(description = 'tells whats new')
 async def new(ctx):
-  await ctx.send('INTERFACE IS CHANGED COMPLETELY \n POLLS /n NEW HELP COMMAND  ')
+  await ctx.send('new &spam and &clear use &help to see what they do ')
 
 
 
@@ -202,10 +266,10 @@ def get_yomamma():
     return (picture)
 
 
-@client.command(description = 'who made me')
-async def yomamma(ctx): 
+@client.command()
+async def yomamma(ctx,member:discord.Member): 
 	yomamma = get_yomamma()
-	await ctx.send(ctx.author.mention + format(yomamma))
+	await ctx.send(member.mention + format (str(yomamma)))
 
 
 @client.command(description = 'sends the bot display picture')
@@ -224,15 +288,43 @@ async def website(ctx):
 async def servers(ctx):
   await ctx.send('I AM IN CURRENTLY \n **akash gaming ** \n **GÆM** \n ** Rotract BIT ** \n **Deadmans server** \n `NEED TO BE IN 75 SERVERS FOR VERIFICATION \n USE &invite TO SEE HOW TO GET ME IN YOUR SERVER` ')
 
+@client.command(description = 'a free virus')
+async def virus(ctx):
+  await ctx.send(' Command is offline as you kids will do something with it that will land me in trouble')	
 
-@client.command(description = 'how many servers i im')
+
+@client.command(description = 'want a bot for yourself?')
 async def free(ctx):
   await ctx.send('** WANT A CUSTOM BOT FOR FREE WITH YOUR SERVER NAME DM ME OR John Wick#9788 ON DISCORD** ')
-	
 
+
+@client.command(description = 'the bot code')
+async def code(ctx):
+  await ctx.send('**GUYS FEEL FREE TO USE MY CODE WOULD APPRICIATE IF YOU DONT DELETE THE &creator COMMAND ** https://github.com/akashgreninja/DISCORD')	
+
+
+@client.command(brief="Random picture of a woof")
+async def dogpic(self, ctx):
+	async with ctx.channel.typing():
+		async with aiohttp.ClientSession() as cs:
+			async with cs.get("https://random.dog/woof.json") as r:
+				data = await r.json()
+
+				embed = discord.Embed(title="Woof")
+				embed.set_image(url=data['url'])
+				embed.set_footer(text="http://random.dog/")
+
+				await ctx.send(embed=embed)
+				
+@client.command()
+async def dance1(ctx):
+	await ctx.send('<a:fezWaddle:855513210370654288>')
 
 
 
 
 keep_alive()
-client.run('YOUR TOKEN CODE')
+client.run(my_secret)
+
+
+
